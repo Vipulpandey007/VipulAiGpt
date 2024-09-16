@@ -2,7 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import "./newprompt.css";
 import Upload from "../upload/upload";
 import { IKImage } from "imagekitio-react";
+import model from "../../lib/gemini";
+import Markdown from "react-markdown";
 const NewPrompt = () => {
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+
   const endRef = useRef(null);
   const [img, setImg] = useState({
     isLoading: false,
@@ -14,6 +19,22 @@ const NewPrompt = () => {
   useEffect(() => {
     endRef.current.scrollIntoView({ behavior: "smooth" });
   }, []);
+
+  const add = async (text) => {
+    setQuestion(text);
+    const result = await model.generateContent(text);
+    const response = await result.response;
+    setAnswer(response.text());
+    console.log(text);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const text = e.target.text.value;
+    if (!text) return;
+    add(text, false);
+  };
+
   return (
     <>
       {img.isLoading && <div className="">Image Uploading....</div>}
@@ -26,17 +47,21 @@ const NewPrompt = () => {
         />
       )}
 
-      <div className="endChat" ref={endRef}>
-        <div className="newprompt">
-          <form className="newForm">
-            <Upload setImg={setImg} />
-            <input id="file" type="file" multiple={false} hidden />
-            <input type="text" name="text" placeholder="Ask anything..." />
-            <button>
-              <img src="/arrow.png" alt="upload" />
-            </button>
-          </form>
+      {question && <div className="message user">{question}</div>}
+      {answer && (
+        <div className="message">
+          <Markdown>{answer}</Markdown>
         </div>
+      )}
+      <div className="endChat" ref={endRef}>
+        <form className="newForm" onSubmit={handleSubmit}>
+          <Upload setImg={setImg} />
+          <input id="file" type="file" multiple={false} hidden />
+          <input type="text" name="text" placeholder="Ask anything..." />
+          <button>
+            <img src="/arrow.png" alt="upload" />
+          </button>
+        </form>
       </div>
     </>
   );
