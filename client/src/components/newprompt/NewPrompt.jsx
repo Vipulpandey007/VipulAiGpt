@@ -18,14 +18,16 @@ const NewPrompt = () => {
 
   useEffect(() => {
     endRef.current.scrollIntoView({ behavior: "smooth" });
-  }, []);
+  }, [question, answer, img.dbData]);
 
   const add = async (text) => {
     setQuestion(text);
-    const result = await model.generateContent(text);
+    const result = await model.generateContent(
+      Object.entries(img.aiData).length ? [img.aiData, text] : [text]
+    );
     const response = await result.response;
     setAnswer(response.text());
-    console.log(text);
+    setImg({ isLoading: false, error: "", dbData: {}, aiData: {} });
   };
 
   const handleSubmit = async (e) => {
