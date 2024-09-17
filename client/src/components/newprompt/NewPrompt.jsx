@@ -10,6 +10,7 @@ const NewPrompt = ({ data }) => {
   const [answer, setAnswer] = useState("");
 
   const endRef = useRef(null);
+  const formRef = useRef(null);
   const [img, setImg] = useState({
     isLoading: false,
     error: "",
@@ -57,6 +58,7 @@ const NewPrompt = ({ data }) => {
       queryClient
         .invalidateQueries({ queryKey: ["chat", data._id] })
         .then(() => {
+          formRef.current.reset();
           setQuestion("");
           setAnswer("");
           setImg({
@@ -100,6 +102,17 @@ const NewPrompt = ({ data }) => {
     add(text, false);
   };
 
+  const hasRun = useRef(false);
+
+  useEffect(() => {
+    if (!hasRun.current) {
+      if (data?.history?.length === 1) {
+        add(data.history[0].parts[0].text, true);
+      }
+    }
+    hasRun.current = true;
+  }, []);
+
   return (
     <>
       {img.isLoading && <div className="">Image Uploading....</div>}
@@ -119,7 +132,7 @@ const NewPrompt = ({ data }) => {
         </div>
       )}
       <div className="endChat" ref={endRef}>
-        <form className="newForm" onSubmit={handleSubmit}>
+        <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
           <Upload setImg={setImg} />
           <input id="file" type="file" multiple={false} hidden />
           <input type="text" name="text" placeholder="Ask anything..." />
